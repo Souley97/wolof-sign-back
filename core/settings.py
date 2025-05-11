@@ -177,6 +177,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
+
 # Ensure the directories exist
 os.makedirs(STATIC_ROOT, exist_ok=True)
 os.makedirs(MEDIA_ROOT, exist_ok=True)
