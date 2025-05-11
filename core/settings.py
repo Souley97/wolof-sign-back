@@ -1,0 +1,251 @@
+import os
+from pathlib import Path
+import environ
+from datetime import timedelta
+from cryptography.fernet import Fernet
+import logging
+
+# Configurer environ
+env = environ.Env()
+env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+environ.Env.read_env(env_file)
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Security Settings
+SECRET_KEY = env('DJANGO_SECRET_KEY')
+DEBUG = env.bool('DJANGO_DEBUG', False)
+# ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,azharback-production.up.railway.app').split(',')]
+
+# Security Headers
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+ROOT_URLCONF = 'core.urls'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'users.User'
+
+# Rate Limiting
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+        'auth': '30/minute',
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# JWT Settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+    'ALGORITHM': 'HS512',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# Password Validation
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# CORS Settings
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://wolof-sign.vercel.app',
+    "https://azharback-production.up.railway.app"
+
+])
+CORS_ALLOW_CREDENTIALS = True
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+    'drf_spectacular',
+    'users',
+    'documents',
+    'certificates',
+    'subscriptions',
+]
+# monprojet/settings.py
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # Assurez-vous que ce chemin est correct
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+WSGI_APPLICATION = 'core.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'wolof_sign',
+        'USER': 'postgres',
+        'PASSWORD': 'Bamsachine97',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Media files (Uploaded by users)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Ensure the directories exist
+os.makedirs(STATIC_ROOT, exist_ok=True)
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+
+
+EMAIL_BACKEND = env('EMAIL_BACKEND')
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env.int('EMAIL_PORT')  
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)  
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+# Clé de chiffrement pour les signatures
+# En production, cette clé doit être stockée de manière sécurisée (variables d'environnement)
+SIGNATURE_ENCRYPTION_KEY = env('SIGNATURE_ENCRYPTION_KEY', default=None)
+if SIGNATURE_ENCRYPTION_KEY:
+    # Nettoyer la clé (supprimer les espaces)
+    SIGNATURE_ENCRYPTION_KEY = SIGNATURE_ENCRYPTION_KEY.strip()
+
+# Si la clé n'est pas définie ou n'est pas au format attendu, générer une nouvelle clé
+try:
+    if SIGNATURE_ENCRYPTION_KEY:
+        # Tester si la clé est valide
+        key_bytes = SIGNATURE_ENCRYPTION_KEY.encode()
+        Fernet(key_bytes)
+    else:
+        raise ValueError("Clé non définie")
+except Exception as e:
+    logger = logging.getLogger(__name__)
+    logger.warning(f"ATTENTION: La clé de chiffrement n'est pas valide ({str(e)}). Génération d'une nouvelle clé temporaire.")
+    SIGNATURE_ENCRYPTION_KEY = Fernet.generate_key().decode()
+
+# Stripe Configuration
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+STRIPE_SUCCESS_URL = os.environ.get('STRIPE_SUCCESS_URLs', 'http://localhost:3000/dashboard/subscription?status=succs')
+STRIPE_CANCEL_URL = os.environ.get('STRIPE_CANCEL_URL', 'http://localhost:3000/pricing?status=canceled')
+
+# Fonction pour créer les produits et prix dans Stripe
+def create_stripe_products():
+    import stripe
+    from subscriptions.models import Plan
+    
+    stripe.api_key = STRIPE_SECRET_KEY
+    
+    # Créer ou mettre à jour les plans dans Stripe
+    plans = Plan.objects.all()
+    for plan in plans:
+        if plan.plan_type == 'decouverte':
+            continue  # Ignorer le plan gratuit
+        
+        # Créer le produit s'il n'existe pas encore
+        if not hasattr(plan, 'stripe_product_id') or not plan.stripe_product_id:
+            product = stripe.Product.create(
+                name=plan.name,
+                description=plan.description,
+                metadata={'plan_id': plan.id, 'plan_type': plan.plan_type}
+            )
+            plan.stripe_product_id = product.id
+        
+        # Créer ou mettre à jour les prix
+        if not plan.stripe_price_id_monthly:
+            price_monthly = stripe.Price.create(
+                product=plan.stripe_product_id,
+                # unit_amount=int(plan.price_monthly ),  # En centimes
+                unit_amount=int(plan.price_monthly ),  # En centimes
+                currency='xof',  # Franc CFA
+                recurring={'interval': 'month'},
+                metadata={'plan_id': plan.id, 'billing_cycle': 'monthly'}
+            )
+            plan.stripe_price_id_monthly = price_monthly.id
+        
+        if not plan.stripe_price_id_annually:
+            price_annually = stripe.Price.create(
+                product=plan.stripe_product_id,
+                # unit_amount=int(plan.price_annually ),  # En centimes
+                unit_amount=int(plan.price_annually ),  # En centimes
+                currency='xof',  # Franc CFA
+                recurring={'interval': 'year'},
+                metadata={'plan_id': plan.id, 'billing_cycle': 'annually'}
+            )
+            plan.stripe_price_id_annually = price_annually.id
+        
+        plan.save()

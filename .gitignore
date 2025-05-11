@@ -1,0 +1,35 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*/__pycache__/
+
+
+# Django migrations
+*/migrations/
+!*/migrations/__init__.py
+
+# Environnements virtuels
+venv/
+# .env/
+/core/.env/
+# MacOS
+.DS_Store
+
+# Médias utilisateurs
+/media/
+
+# Log files
+*.log
+
+# JetBrains IDE (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# System files
+Thumbs.db
+
+.qodo

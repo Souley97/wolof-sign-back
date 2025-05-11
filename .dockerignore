@@ -1,0 +1,10 @@
+Dockerfile
+.dockerignore
+.git/
+.github/
+.gitignore
+.prettierrc
+README.md
+CHANGELOG.md
+LICENSE
+.DS_Store

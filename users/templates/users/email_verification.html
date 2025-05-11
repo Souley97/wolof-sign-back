@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolof Sign - Signature Électronique</title>
+    <style>
+        /* Styles Généraux */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* Conteneur Principal */
+        .verification-account {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            background: url('https://github.com/Souleymane-ndiaye/images/blob/main/bg2.png?raw=true');
+            padding: 30px;
+        }
+
+        /* Boîte de contenu */
+        .content-box {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            border: 2px solid white;
+            padding: 30px 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .content-top {
+            padding: 30px;
+            width: 350px;
+        }
+
+        /* Texte de bienvenue */
+        .welcome-text {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .tagline {
+            font-style: italic;
+            color: #015192;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .expert-text {
+            font-weight: bold;
+        }
+
+        /* Contenu du message */
+        .message {
+            font-size: 14px;
+            color: #000;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        /* Bouton */
+        .btn {
+            background: linear-gradient(113.18deg, #015192 0%, #00a5bc 100%);
+            border-radius: 50px;
+            padding: 12px 54px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            display: inline-block;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #015192;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        a {
+            color: #015192;
+            text-decoration: none;
+        }
+        
+        .btn a {
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Styles pour les paragraphes */
+        p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Styles pour les icônes sociales */
+        .name-text {
+            color: #F99685;
+        }
+
+        .social {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social img {
+            width: 32px;
+            height: 32px;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+        
+        .social img:hover {
+            transform: scale(1.1);
+        }
+        
+        .feature-list {
+            text-align: left;
+            padding-left: 20px;
+        }
+        
+        .decree {
+            font-size: 12px;
+            background-color: rgba(1, 81, 146, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+        <!-- Outlook Background Fix -->
+        <!--[if gte mso 9]>
+        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:700px; height:1500px;">
+            <v:fill type="frame" src="https://res.cloudinary.com/dxjmr9een/image/upload/v1738829172/fc2gjpywkvb82frsfwyb.png" color="#ffffff"/>
+            <v:textbox inset="0,0,0,0">
+        <![endif]-->
+    
+        <!-- Utilisation d'un tableau pour la compatibilité avec Gmail -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td align="center">
+    
+                    <table class="verification-account" width="600px" cellpadding="0" cellspacing="0" border="0" style="background: url('https://res.cloudinary.com/dxjmr9een/image/upload/v1738829172/fc2gjpywkvb82frsfwyb.png') no-repeat center center; background-size: cover; padding: 20px; text-align: center;">
+    
+                        <!-- Section supérieure -->
+                        <tr>
+                            <td align="center">
+                                <div class="content-top">
+                                    <p>
+                                        <img src="https://github.com/Souleymane-ndiaye/images/blob/main/logo-ufs.png?raw=true" alt="Logo Wolof Sign" width="150" />
+                                    </p>
+                                    <p>
+                                        <img src="https://github.com/Souleymane-ndiaye/images/blob/main/user.png?raw=true" alt="User Icon" width="80" />
+                                    </p>
+                                    <p align="center" class="welcome-text">
+                                        Salut <span class="name-text"> {{ user.first_name }} </span>,<br/>
+                                        Votre compte Wolof Sign est activé !
+                                    </p>
+                                    <p class="tagline">Signature électronique nouvelle génération</p>
+                                    <p class="decree">Conforme au Décret N°2008-720 du 30 juin 2008</p>
+                                </div>
+                            </td>
+                        </tr>
+    
+                        <!-- Section principale -->
+                        <tr>
+                            <td align="center">
+                                <div class="content-box">
+                                    <p>Bonjour {{ user.first_name }},</p>
+                                        {% if password %}
+                                        <p style="background-color: rgba(1, 81, 146, 0.1); padding: 10px; border-radius: 8px; font-weight: bold;">Votre mot de passe temporaire : {{ password }}</p>
+                                        {% endif %}
+    
+                                    <p>
+                                        Bienvenue sur Wolof Sign, la première solution de signature électronique 100% sénégalaise !
+                                        Pour activer complètement votre compte et commencer à signer vos documents électroniquement, veuillez confirmer votre email en cliquant sur le bouton ci-dessous :
+                                    </p>
+    
+                                    <a href="{{ verification_link }}" style="display: inline-block; padding: 12px 54px; background: linear-gradient(113.18deg, #015192 0%, #00a5bc 100%); color: white; text-decoration: none; font-size: 16px; border-radius: 40px; font-weight: 600; margin: 15px 0;">
+                                        Activer mon compte
+                                        <img src="https://github.com/Souleymane-ndiaye/images/blob/main/icon.png?raw=true" alt="Arrow Icon" width="16" />
+                                    </a>
+    
+                                    <p>
+                                        <br />
+                                        Avec Wolof Sign, vous pouvez :
+                                        <p class="expert-text feature-list">
+                                        ✔ Signer électroniquement vos documents avec une valeur juridique<br />
+                                        ✔ Partager et faire signer des documents en quelques clics<br />
+                                        ✔ Suivre l'avancement de vos signatures en temps réel<br />
+                                        ✔ Bénéficier d'une solution 100% conforme à la réglementation sénégalaise<br />
+                                        ✔ Contribuer à la souveraineté numérique du Sénégal<br /><br />
+                                        </p>
+                                        Notre mission est de rendre accessible à toutes les organisations sénégalaises une solution de signature électronique conforme aux réglementations locales, sécurisée et simple d'utilisation.
+                                        Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.<br /><br />
+                                        Nous sommes ravis de vous accompagner dans votre transformation numérique !<br /><br />
+                                        Cordialement,<br /><br />
+                                        L'équipe Wolof Sign
+                                    </p>
+                                    <hr style="border: 0; height: 1px; background: rgba(0,0,0,0.1); margin: 20px 0;" />
+    
+                                    <p>
+                                        Besoin d'aide ou avez-vous des questions ? Notre équipe est à votre disposition.<br />
+                                        Contactez-nous directement :<br />
+                                        <p style="color: #015192; font-weight: bold; background-color: rgba(1, 81, 146, 0.05); padding: 10px; border-radius: 8px;">
+                                        📞 +221 33 889 43 00<br />
+                                        ✉️ support@wolofsign.com<br />
+                                        🌐 www.wolofsign.com<br /><br />
+                                        </p>
+                                        Suivez-nous sur les réseaux sociaux pour rester informé de nos actualités :
+                                    </p>
+    
+                                    <p class="social">
+                                        <a href="#"><img src="https://github.com/Souleymane-ndiaye/images/blob/main/instagram.png?raw=true" alt="Instagram" width="32"></a>
+                                        <a href="#"><img src="https://github.com/Souleymane-ndiaye/images/blob/main/facebook.png?raw=true" alt="Facebook" width="32"></a>
+                                        <a href="#"><img src="https://github.com/Souleymane-ndiaye/images/blob/main/youtube.png?raw=true" alt="YouTube" width="32"></a>
+                                        <a href="#"><img src="https://github.com/Souleymane-ndiaye/images/blob/main/linkedin.png?raw=true" alt="LinkedIn" width="32"></a>
+                                    </p>
+                                    
+                                    <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                                        Wolof Sign - L'Ère Numérique Sénégalaise<br>
+                                        Pionnier de la signature électronique au Sénégal
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+    
+                    </table>
+    
+                </td>
+            </tr>
+        </table>
+    
+        <!-- Outlook Fix End -->
+        <!--[if gte mso 9]>
+            </v:textbox>
+        </v:rect>
+        <![endif]-->
+    
+    </body>
+</html>
