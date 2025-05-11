@@ -4,6 +4,7 @@ import environ
 from datetime import timedelta
 from cryptography.fernet import Fernet
 import logging
+import dj_database_url
 
 # Configurer environ
 env = environ.Env()
@@ -127,6 +128,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
@@ -134,19 +137,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+DATABASE_URL = "postgresql://postgres:AGoHKPfINFzJWzwankCiGExwGtEpRyoO@switchback.proxy.rlwy.net:51653/railway"
 DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'wolof_sign',
-        'USER': 'postgres',
-        'PASSWORD': 'Bamsachine97',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=1800),
 }
+
+# DATABASES = {
+#     'default': {
+#         # 'ENGINE': 'django.db.backends.sqlite3',
+#         # 'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'wolof_sign',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Bamsachine97',
+#         'HOST': 'localhost',
+#         'PORT': '5432',  
+#     }
+# }
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -169,8 +176,8 @@ os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 EMAIL_BACKEND = env('EMAIL_BACKEND')
 EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env.int('EMAIL_PORT')  
-EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)  
+EMAIL_PORT = env('EMAIL_PORT')  
+EMAIL_USE_TLS = env('EMAIL_USE_TLS', default=True)  
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
