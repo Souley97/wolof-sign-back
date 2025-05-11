@@ -18,7 +18,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', False)
 # ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,azharback-production.up.railway.app').split(',')]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,wolof-sign-back-production.up.railway.app').split(',')]
 
 # Security Headers
 SECURE_SSL_REDIRECT = not DEBUG
@@ -79,7 +79,7 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://wolof-sign.vercel.app',
-    "https://azharback-production.up.railway.app"
+    "https://wolof-sign-back-production.up.railway.app"
 
 ])
 CORS_ALLOW_CREDENTIALS = True
