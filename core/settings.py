@@ -21,7 +21,10 @@ DEBUG = env.bool('DJANGO_DEBUG', False)
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,wolof-sign-back-production.up.railway.app').split(',')]
 
 # Security Headers
-SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SECURE_SSL_REDIRECT = False
+
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
@@ -145,7 +148,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'sqlite:///data.db'),
+        default=os.getenv('DATABASE_URL', 'sqlite:///daata.db'),
         conn_max_age=600
     )
 }
