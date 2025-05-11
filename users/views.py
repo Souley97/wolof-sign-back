@@ -92,7 +92,12 @@ def verify_email(request, token):
             
             # Delete the token after use
             token_obj.delete()
-            redirection_url = "http://localhost:3000/auth/login"
+            site_url = settings.FRONTEND_URL
+    
+    
+    # Create reset link - this should point to your frontend
+    
+            redirection_url = f"{site_url}/auth/login"
             return redirect(redirection_url)
         
         

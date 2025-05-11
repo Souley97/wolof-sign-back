@@ -56,10 +56,13 @@ def send_password_reset_email(user, request=None):
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
     
     # Get site URL from environment variables
-    site_url = settings.SITE_URL
+    
+    site_url = settings.FRONTEND_URL
+    
+    # Create verification link
     
     # Create reset link - this should point to your frontend
-    reset_link = f"http://localhost:3000/auth/reset-password/{uidb64}/{token}"
+    reset_link = f"{site_url}/auth/reset-password/{uidb64}/{token}"
     
     # Prepare email content
     context = {
