@@ -71,8 +71,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             if not user.check_password(password):
                 raise serializers.ValidationError("Identifiants invalides. Veuillez vérifier votre email et mot de passe.")
             
-            if not user.is_verified:
-                raise serializers.ValidationError("Votre email n'a pas été vérifié. Veuillez vérifier votre boîte de réception.")
+            # if not user.is_verified:
+            #     raise serializers.ValidationError("Votre email n'a pas été vérifié. Veuillez vérifier votre boîte de réception.")
 
         except get_user_model().DoesNotExist:
             raise serializers.ValidationError("Aucun compte ne correspond à cet email.")
