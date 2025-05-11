@@ -21,6 +21,7 @@ DEBUG = env.bool('DJANGO_DEBUG', False)
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,wolof-sign-back-production.up.railway.app').split(',')]
 
 # Security Headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000  # 1 year
