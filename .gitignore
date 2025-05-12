@@ -17,7 +17,7 @@ venv/
 .DS_Store
 
 # Médias utilisateurs
-/media/
+# /media/
 
 # Log files
 *.log
