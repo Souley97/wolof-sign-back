@@ -21,4 +21,31 @@ class OptionsMiddleware:
             return response
         else:
             # Process regular requests
-            return self.get_response(request) 
+            return self.get_response(request)
+
+class MediaFilesMiddleware:
+    """
+    Middleware pour gérer correctement les en-têtes CORS pour les fichiers média
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        
+        # Si la requête concerne un fichier média
+        if request.path.startswith('/media/'):
+            # Ajouter les en-têtes CORS pour les fichiers média
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Origin, Content-Type, Accept"
+            
+            # Ajouter des en-têtes de cache pour améliorer les performances
+            response["Cache-Control"] = "public, max-age=86400"  # Cache pour 24 heures
+            
+            # Configurer le type de contenu correct pour les PDF
+            if request.path.endswith('.pdf'):
+                response["Content-Type"] = "application/pdf"
+                response["Content-Disposition"] = "inline"
+        
+        return response 

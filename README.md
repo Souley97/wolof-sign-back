@@ -106,3 +106,37 @@ cd repository-ufs_back_end
    ```
 
 3. **Access the project** by going to `http://127.0.0.1:8000/swagger` in your browser.
+
+# Wolof-Sign Django Backend
+
+## Configuration des fichiers média en production
+
+### Important pour le déploiement sur Railway
+
+Lorsque vous déployez sur Railway ou tout autre service avec des conteneurs éphémères, gardez à l'esprit que les fichiers téléchargés dans le répertoire `media/` ne seront pas persistants. Après un redémarrage du conteneur ou un nouveau déploiement, ces fichiers seront perdus.
+
+### Solutions recommandées pour la production:
+
+1. **Utiliser un service de stockage externe** comme AWS S3, Google Cloud Storage, ou similaire:
+   - Installez `django-storages` et `boto3` pour AWS S3:
+     ```
+     pip install django-storages boto3
+     ```
+   - Ajoutez `storages` à `INSTALLED_APPS` 
+   - Configurez AWS S3 dans `.env`:
+     ```
+     AWS_ACCESS_KEY_ID=votre_cle_acces
+     AWS_SECRET_ACCESS_KEY=votre_cle_secrete
+     AWS_STORAGE_BUCKET_NAME=nom_de_votre_bucket
+     ```
+   - Le code pour utiliser S3 est déjà préparé dans `settings.py`, il suffit de décommenter et configurer.
+
+2. **Alternative**: PostgreSQL Large Objects
+   - Vous pouvez stocker de petits fichiers directement dans la base de données PostgreSQL
+   - Cependant, cela n'est pas recommandé pour les fichiers volumineux ou nombreux
+
+### Configuration actuelle
+
+Le backend est configuré pour servir les fichiers média via l'URL `/media/` en environnement de développement et en production.
+
+Pour les fichiers PDF spécifiquement, un middleware personnalisé (`MediaFilesMiddleware`) a été ajouté pour configurer correctement les en-têtes CORS et le type de contenu.
