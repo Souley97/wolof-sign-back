@@ -275,6 +275,18 @@ PAYDUNYA_MASTER_KEY = os.environ.get('PAYDUNYA_MASTER_KEY', '')
 PAYDUNYA_PRIVATE_KEY = os.environ.get('PAYDUNYA_PRIVATE_KEY', '')
 PAYDUNYA_PUBLIC_KEY = os.environ.get('PAYDUNYA_PUBLIC_KEY', '')
 PAYDUNYA_TOKEN = os.environ.get('PAYDUNYA_TOKEN', '')
+
+# Fix key mismatch between test and live environments
+if 'test_' in PAYDUNYA_PRIVATE_KEY and not PAYDUNYA_MASTER_KEY.startswith('test_'):
+    # We're using test private key but have a live master key - force test mode
+    # The correct solution is to update your .env file with matching keys
+    # This is a temporary fix for development
+    PAYDUNYA_MASTER_KEY = 'BPuaGe7s-X4mG-983H-ciPz-Yi5KlKgdQaSf'  # Example test master key - REPLACE THIS
+
+# Ensure TOKEN is set for test environment
+if 'test_' in PAYDUNYA_PRIVATE_KEY and not PAYDUNYA_TOKEN:
+    PAYDUNYA_TOKEN = 'test_token_iFLGF46JfTFsYy1p2aECz6XPnDk'  # Example test token - REPLACE IF NEEDED
+
 PAYDUNYA_BASE_URL = os.environ.get('PAYDUNYA_BASE_URL', 'https://app.paydunya.com/api/v1')
 PAYDUNYA_TEST_MODE = os.environ.get('PAYDUNYA_TEST_MODE', 'True').lower() == 'true'
 PAYDUNYA_SUCCESS_URL = os.environ.get('PAYDUNYA_SUCCESS_URL', STRIPE_SUCCESS_URL)

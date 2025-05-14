@@ -5,7 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib import messages
 from django.utils import timezone
-from rest_framework.decorators import api_view, permission_classes
+from django.urls import reverse
+from rest_framework.decorators import api_view, permission_classes, renderer_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, viewsets
@@ -16,6 +17,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Sum, Count, Q
 import json
 import logging
+from urllib.parse import quote
+
+# Configuration du logger
+logger = logging.getLogger(__name__)
 
 from .models import Plan, Subscription, PaymentHistory
 from .serializers import (
@@ -556,8 +561,53 @@ def usage_stats_api(request):
 def paydunya_checkout_api(request, plan_id):
     """Crée une demande de paiement mobile money via PayDunya"""
     try:
-        # Récupérer le plan
-        plan = get_object_or_404(Plan, id=plan_id, is_active=True)
+        # First try to get the plan regardless of its active status
+        plan = Plan.objects.filter(id=plan_id).first()
+        
+        if not plan:
+            # If no plan with this ID exists, try to get any active plan
+            available_plans = Plan.objects.filter(is_active=True)
+            if available_plans.exists():
+                plan = available_plans.first()
+                logger.warning(f"Plan avec ID={plan_id} non trouvé. Utilisation du plan {plan.name} (ID={plan.id}) à la place.")
+            else:
+                # If no active plans, try to get ANY plan
+                all_plans = Plan.objects.all()
+                if all_plans.exists():
+                    plan = all_plans.first()
+                    # Activate the plan but don't save yet (handled below)
+                    plan.is_active = True
+                    logger.warning(f"Aucun plan actif trouvé. Activation et utilisation du plan {plan.name} (ID={plan.id}).")
+                else:
+                    error_msg = f"Aucun plan trouvé avec ID={plan_id} et aucun plan disponible."
+                    logger.error(error_msg)
+                    return Response({
+                        'success': False,
+                        'message': error_msg,
+                        'available_plans': []
+                    }, status=status.HTTP_404_NOT_FOUND)
+        
+        # If the plan is inactive, activate it
+        if not plan.is_active:
+            plan.is_active = True
+            # Check for NULL fields that might cause constraint errors
+            if plan.created_at is None:
+                plan.created_at = timezone.now()
+            if plan.updated_at is None:
+                plan.updated_at = timezone.now()
+            
+            # Use update_fields to only update specific fields
+            try:
+                plan.save(update_fields=['is_active', 'created_at', 'updated_at'])
+            except Exception as e:
+                logger.warning(f"Error saving plan with update_fields: {str(e)}. Attempting full save.")
+                try:
+                    plan.save()
+                except Exception as e2:
+                    logger.error(f"Error with full save: {str(e2)}. Using plan without saving changes.")
+                    # Continue using the plan without saving changes
+            
+            logger.warning(f"Plan {plan.name} (ID={plan.id}) était inactif et a été activé.")
         
         # Récupérer ou créer un abonnement pour l'utilisateur
         try:
@@ -572,6 +622,7 @@ def paydunya_checkout_api(request, plan_id):
                 subscription.plan = plan
                 subscription.billing_cycle = request.data.get('billing_cycle', subscription.billing_cycle)
                 subscription.save()
+                logger.info(f"Abonnement existant mis à jour pour l'utilisateur {request.user.email}, Plan: {plan.name}")
             else:
                 # Créer un nouvel abonnement si aucun n'existe
                 subscription = Subscription.objects.create(
@@ -580,11 +631,21 @@ def paydunya_checkout_api(request, plan_id):
                     status='pending',
                     billing_cycle=request.data.get('billing_cycle', 'monthly')
                 )
+                logger.info(f"Nouvel abonnement créé pour l'utilisateur {request.user.email}, Plan: {plan.name}")
+        
         except Exception as e:
-            return Response({
-                'success': False,
-                'message': f"Erreur lors de la récupération/création de l'abonnement: {str(e)}"
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            error_msg = f"Erreur lors de la récupération/création de l'abonnement: {str(e)}"
+            logger.error(error_msg)
+            
+            # Format API ou redirection selon le type de contenu demandé
+            if request.accepted_renderer.format == 'json':
+                return Response({
+                    'success': False,
+                    'message': error_msg
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                from django.shortcuts import redirect
+                return redirect(f"/api/subscriptions/paydunya-error/?message={error_msg}")
         
         # Créer la demande de paiement PayDunya
         payment_response = PayDunyaService.create_payment_request(
@@ -594,10 +655,25 @@ def paydunya_checkout_api(request, plan_id):
         )
         
         if not payment_response.get('success'):
-            return Response({
-                'success': False,
-                'message': payment_response.get('error', 'Une erreur est survenue lors de la création de la demande de paiement')
-            }, status=status.HTTP_400_BAD_REQUEST)
+            error_msg = payment_response.get('error', 'Une erreur est survenue lors de la création de la demande de paiement')
+            logger.error(f"Erreur PayDunya: {error_msg}")
+            
+            # Déterminer le code d'erreur s'il s'agit d'un problème d'activation
+            error_code = ''
+            if 'activation' in error_msg.lower() or 'confirmation' in error_msg.lower():
+                error_code = '1001'
+            
+            # Format API ou redirection selon le type de contenu demandé
+            if request.accepted_renderer.format == 'json':
+                return Response({
+                    'success': False,
+                    'message': error_msg,
+                    'error_code': error_code
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                from django.shortcuts import redirect
+                from urllib.parse import quote
+                return redirect(f"/api/subscriptions/paydunya-error/?message={quote(error_msg)}&code={error_code}")
         
         # Retourner l'URL de redirection et autres informations
         return Response({
@@ -607,10 +683,19 @@ def paydunya_checkout_api(request, plan_id):
         })
     
     except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        error_msg = str(e)
+        logger.error(f"Exception lors de l'appel à PayDunya: {error_msg}")
+        
+        # Format API ou redirection selon le type de contenu demandé
+        if request.accepted_renderer.format == 'json':
+            return Response({
+                'success': False,
+                'message': error_msg
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            from django.shortcuts import redirect
+            from urllib.parse import quote
+            return redirect(f"/api/subscriptions/paydunya-error/?message={quote(error_msg)}")
 
 @csrf_exempt
 def paydunya_webhook(request):

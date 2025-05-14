@@ -7,7 +7,7 @@ from .views import (
     PlanViewSet, SubscriptionAdminViewSet, PaymentHistoryViewSet,
     SubscriptionStatsView, sync_stripe_plans, reset_usage_counters,
     extend_subscription_period, paydunya_webhook, paydunya_checkout_api,
-    check_payment_status_api, debug_plans_api
+    check_payment_status_api
 )
 
 # Configurer les routeurs pour les vues ModelViewSet
@@ -35,7 +35,6 @@ urlpatterns = [
     path('check-payment-status/<str:token>/', check_payment_status_api, name='api_check_payment_status'),
     
     # API de débogage (utilitaires)
-    path('debug/plans/', debug_plans_api, name='debug_plans'),
     
     # API d'administration
     path('', include(router.urls)),
