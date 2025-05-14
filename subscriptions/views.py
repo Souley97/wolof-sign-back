@@ -705,3 +705,16 @@ def debug_plans_api(request):
         'count': len(plans_data),
         'plans': plans_data
     })
+
+@api_view(['GET'])
+def paydunya_error_view(request):
+    """Vue pour afficher les erreurs PayDunya de manière conviviale"""
+    error_message = request.GET.get('message', "Une erreur s'est produite lors du traitement de votre paiement PayDunya.")
+    error_code = request.GET.get('code', '')
+    support_email = getattr(settings, 'SUPPORT_EMAIL', 'support@wolofsign.com')
+    
+    return render(request, 'subscriptions/paydunya_error.html', {
+        'error_message': error_message,
+        'error_code': error_code,
+        'support_email': support_email
+    })
