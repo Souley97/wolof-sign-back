@@ -137,15 +137,23 @@ class PaymentHistory(models.Model):
         ('failed', 'Échoué'),
     )
     
+    PAYMENT_METHOD_CHOICES = (
+        ('card', 'Carte bancaire'),
+        ('mobile_money', 'Mobile Money'),
+    )
+    
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='payments')
     payment_date = models.DateTimeField(default=timezone.now)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    payment_method = models.CharField(max_length=50, default='card')
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES, default='card')
     
     # Identifiants Stripe
     stripe_invoice_id = models.CharField(max_length=100, blank=True, null=True)
     stripe_payment_intent_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Identifiants PayDunya
+    paydunya_token = models.CharField(max_length=100, blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     
