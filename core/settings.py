@@ -267,8 +267,24 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-STRIPE_SUCCESS_URL = os.environ.get('STRIPE_SUCCESS_URLs', 'http://localhost:3000/dashboard/subscription?status=succs')
+STRIPE_SUCCESS_URL = os.environ.get('STRIPE_SUCCESS_URL', 'http://localhost:3000/dashboard/subscription?status=success')
 STRIPE_CANCEL_URL = os.environ.get('STRIPE_CANCEL_URL', 'http://localhost:3000/pricing?status=canceled')
+
+# PayDunya Configuration
+PAYDUNYA_MASTER_KEY = os.environ.get('PAYDUNYA_MASTER_KEY', '')
+PAYDUNYA_PRIVATE_KEY = os.environ.get('PAYDUNYA_PRIVATE_KEY', '')
+PAYDUNYA_PUBLIC_KEY = os.environ.get('PAYDUNYA_PUBLIC_KEY', '')
+PAYDUNYA_TOKEN = os.environ.get('PAYDUNYA_TOKEN', '')
+PAYDUNYA_BASE_URL = os.environ.get('PAYDUNYA_BASE_URL', 'https://app.paydunya.com/api/v1')
+PAYDUNYA_TEST_MODE = os.environ.get('PAYDUNYA_TEST_MODE', 'True').lower() == 'true'
+PAYDUNYA_SUCCESS_URL = os.environ.get('PAYDUNYA_SUCCESS_URL', STRIPE_SUCCESS_URL)
+PAYDUNYA_CANCEL_URL = os.environ.get('PAYDUNYA_CANCEL_URL', STRIPE_CANCEL_URL)
+
+# Store Information (for PayDunya)
+STORE_NAME = os.environ.get('STORE_NAME', 'Wolof Sign')
+STORE_TAGLINE = os.environ.get('STORE_TAGLINE', 'Signature électronique en toute simplicité')
+STORE_PHONE = os.environ.get('STORE_PHONE', '+221 XX XXX XX XX')
+STORE_ADDRESS = os.environ.get('STORE_ADDRESS', 'Dakar, Sénégal')
 
 # Fonction pour créer les produits et prix dans Stripe
 def create_stripe_products():
