@@ -234,13 +234,29 @@ if not DEBUG:
     # AWS_LOCATION = 'media'
     # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-EMAIL_BACKEND = env('EMAIL_BACKEND')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env('EMAIL_PORT')  
-EMAIL_USE_TLS = env('EMAIL_USE_TLS', default=True)  
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+# Email Configuration
+if DEBUG:
+    # En mode développement, utiliser le backend console pour afficher les emails dans la console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    logger.info("Using console email backend for development")
+else:
+    # En production, utiliser SMTP avec Gmail
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+    
+    # Vérification de la configuration email
+    if not all([EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
+        logger.warning("Email configuration is incomplete. Please check your environment variables.")
+    
+    # Configuration supplémentaire pour la sécurité
+    EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+    EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=30)  # Timeout en secondes
+    EMAIL_SSL_CERTVERIFY = env.bool('EMAIL_SSL_CERTVERIFY', default=True)
 
 # Clé de chiffrement pour les signatures
 # En production, cette clé doit être stockée de manière sécurisée (variables d'environnement)
