@@ -94,7 +94,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         model = get_user_model()
         fields = ('email', 'password')
         
-        
 class PasswordResetRequestSerializer(serializers.Serializer):
     """
     Serializer for requesting a password reset.
@@ -121,7 +120,9 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             'to_email': user.email,
         }
 
-        send_email(data)
+        send_mail(data)
+
+    
 
 class SetNewPasswordSerializer(serializers.Serializer):
     """
