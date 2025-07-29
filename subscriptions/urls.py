@@ -6,7 +6,8 @@ from .views import (
     change_plan_api, cancel_subscription_api, usage_stats_api,
     PlanViewSet, SubscriptionAdminViewSet, PaymentHistoryViewSet,
     SubscriptionStatsView, sync_stripe_plans, reset_usage_counters,
-    extend_subscription_period
+    extend_subscription_period, paydunya_webhook, paydunya_checkout_api,
+    check_payment_status_api
 )
 
 # Configurer les routeurs pour les vues ModelViewSet
@@ -19,12 +20,21 @@ urlpatterns = [
     # Webhook Stripe
     path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
     
+    # Webhook PayDunya
+    path('webhook/paydunya/', paydunya_webhook, name='paydunya_webhook'),
+    
     # API pour utilisateurs finaux
     path('plans/', plans_list_api, name='api_plans_list'),
     path('current/', current_subscription_api, name='api_current_subscription'),
     path('change-plan/<int:plan_id>/', change_plan_api, name='api_change_plan'),
     path('cancel/', cancel_subscription_api, name='api_cancel_subscription'),
     path('usage/', usage_stats_api, name='api_usage_stats'),
+    
+    # API PayDunya pour utilisateurs finaux
+    path('paydunya-checkout/<int:plan_id>/', paydunya_checkout_api, name='api_paydunya_checkout'),
+    path('check-payment-status/<str:token>/', check_payment_status_api, name='api_check_payment_status'),
+    
+    # API de débogage (utilitaires)
     
     # API d'administration
     path('', include(router.urls)),

@@ -234,13 +234,29 @@ if not DEBUG:
     # AWS_LOCATION = 'media'
     # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-EMAIL_BACKEND = env('EMAIL_BACKEND')
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env('EMAIL_PORT')  
-EMAIL_USE_TLS = env('EMAIL_USE_TLS', default=True)  
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+# Email Configuration
+if DEBUG:
+    # En mode développement, utiliser le backend console pour afficher les emails dans la console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    logger.info("Using console email backend for development")
+else:
+    # En production, utiliser SMTP avec Gmail
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+    
+    # Vérification de la configuration email
+    if not all([EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
+        logger.warning("Email configuration is incomplete. Please check your environment variables.")
+    
+    # Configuration supplémentaire pour la sécurité
+    EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+    EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=30)  # Timeout en secondes
+    EMAIL_SSL_CERTVERIFY = env.bool('EMAIL_SSL_CERTVERIFY', default=True)
 
 # Clé de chiffrement pour les signatures
 # En production, cette clé doit être stockée de manière sécurisée (variables d'environnement)
@@ -267,8 +283,36 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-STRIPE_SUCCESS_URL = os.environ.get('STRIPE_SUCCESS_URLs', 'http://localhost:3000/dashboard/subscription?status=succs')
+STRIPE_SUCCESS_URL = os.environ.get('STRIPE_SUCCESS_URL', 'http://localhost:3000/dashboard/subscription?status=success')
 STRIPE_CANCEL_URL = os.environ.get('STRIPE_CANCEL_URL', 'http://localhost:3000/pricing?status=canceled')
+
+# PayDunya Configuration
+PAYDUNYA_MASTER_KEY = os.environ.get('PAYDUNYA_MASTER_KEY', '')
+PAYDUNYA_PRIVATE_KEY = os.environ.get('PAYDUNYA_PRIVATE_KEY', '')
+PAYDUNYA_PUBLIC_KEY = os.environ.get('PAYDUNYA_PUBLIC_KEY', '')
+PAYDUNYA_TOKEN = os.environ.get('PAYDUNYA_TOKEN', '')
+
+# Fix key mismatch between test and live environments
+if 'test_' in PAYDUNYA_PRIVATE_KEY and not PAYDUNYA_MASTER_KEY.startswith('test_'):
+    # We're using test private key but have a live master key - force test mode
+    # The correct solution is to update your .env file with matching keys
+    # This is a temporary fix for development
+    PAYDUNYA_MASTER_KEY = 'BPuaGe7s-X4mG-983H-ciPz-Yi5KlKgdQaSf'  # Example test master key - REPLACE THIS
+
+# Ensure TOKEN is set for test environment
+if 'test_' in PAYDUNYA_PRIVATE_KEY and not PAYDUNYA_TOKEN:
+    PAYDUNYA_TOKEN = 'test_token_iFLGF46JfTFsYy1p2aECz6XPnDk'  # Example test token - REPLACE IF NEEDED
+
+PAYDUNYA_BASE_URL = os.environ.get('PAYDUNYA_BASE_URL', 'https://app.paydunya.com/api/v1')
+PAYDUNYA_TEST_MODE = os.environ.get('PAYDUNYA_TEST_MODE', 'True').lower() == 'true'
+PAYDUNYA_SUCCESS_URL = os.environ.get('PAYDUNYA_SUCCESS_URL', STRIPE_SUCCESS_URL)
+PAYDUNYA_CANCEL_URL = os.environ.get('PAYDUNYA_CANCEL_URL', STRIPE_CANCEL_URL)
+
+# Store Information (for PayDunya)
+STORE_NAME = os.environ.get('STORE_NAME', 'Wolof Sign')
+STORE_TAGLINE = os.environ.get('STORE_TAGLINE', 'Signature électronique en toute simplicité')
+STORE_PHONE = os.environ.get('STORE_PHONE', '+221 XX XXX XX XX')
+STORE_ADDRESS = os.environ.get('STORE_ADDRESS', 'Dakar, Sénégal')
 
 # Fonction pour créer les produits et prix dans Stripe
 def create_stripe_products():
