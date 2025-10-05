@@ -7,15 +7,11 @@ services:
       POSTGRES_PASSWORD: wolof@123
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - wolof-network
 
   redis:
     image: redis:7-alpine
     volumes:
       - redis_data:/data
-    networks:
-      - wolof-network
 
   web:
     build: .
@@ -23,40 +19,16 @@ services:
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
-      - media_volume:/app/mediafiles
     environment:
       - DEBUG=False
+      - ALLOWED_HOSTS=localhost,72.60.189.237,127.0.0.1
+    ports:
+      - "8080:8000"
     depends_on:
       - db
       - redis
-    networks:
-      - wolof-network
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep gunicorn"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
-    ports:
-      - "8080:80"
-    volumes:
-      - static_volume:/app/staticfiles
-    depends_on:
-      - web
-    networks:
-      - wolof-network
 
 volumes:
   postgres_data:
   redis_data:
   static_volume:
-  media_volume:
-
-networks:
-  wolof-network:
-    driver: bridge
