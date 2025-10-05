@@ -1,75 +1,132 @@
-name: CI/CD for Workflow Backend
+  name: 🚀 WOLOF-SIGN CI/CD
 
-on:
-  push:
-    branches:
-      - main  # Exécuter le pipeline sur les pushs vers la branche principale
-  pull_request:
-    branches:
-      - main  # Exécuter le pipeline sur les pull requests vers la branche principale
+  on:
+    push:
+      branches: [main, prod]
+    pull_request:
+      branches: [main, prod]
 
-jobs:
-  # Job de test
-  test:
-    runs-on: ubuntu-latest
+  env:
+    PYTHON_VERSION: '3.11'
+    DJANGO_ENV: 'test'
 
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
+  jobs:
+    tests:
+      name: 🧪 Tests Django
+      runs-on: ubuntu-latest
+      timeout-minutes: 10
+      
+      services:
+        postgres:
+          image: postgres:15
+          env:
+            POSTGRES_USER: wolofuser
+            POSTGRES_PASSWORD: wolof@123
+            POSTGRES_DB: wolofsign
+          options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+          ports:
+            - 5432:5432
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      steps:
+      - name: 📥  Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Définir la version de Python utilisée dans votre projet
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
-          pip install --upgrade pip
-          python -m venv venv
-          source venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run tests
+          pip install pytest pytest-django coverage
+      - name: 🏗️ Create environment file
         run: |
-          source venv/bin/activate
-          python manage.py test  # Remplacez par la commande de test de votre projet
-
-  # Job de build Docker image
-  docker_build:
-    runs-on: ubuntu-latest
-    needs: test  # Exécuter ce job après le job de test
-
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build Docker image
+          echo "DEBUG=False" >> .env.test
+          echo "SECRET_KEY=test-key-for-github-actions-only" >> .env.test
+          echo "DB_NAME=wolofsign" >> .env.test
+          echo "DB_USER=wolofuser" >> .env.test
+          echo "DB_PASSWORD=Bamsachine97@123" >> .env.test
+          echo "DB_HOST=localhost" >> .env.test
+          echo "DB_PORT=5432" >> .env.test
+      - name: 🗃️ Setup test database
         run: |
-          docker build -t yourdockerhubusername/your-app-name:latest .
+          python manage.py migrate
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+    code-quality:
+      name: 🔍  Qualité de Code
+      runs-on: ubuntu-latest
+      
+      steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Push Docker image
+      - name: 📦 Install quality tools
         run: |
-          docker push yourdockerhubusername/your-app-name:latest  # Pousser l'image vers Docker Hub ou GitHub Container Registry
-
-  # Job de déploiement (facultatif, selon votre infrastructure)
-  deploy:
-    runs-on: ubuntu-latest
-    needs: docker_build  # Exécuter ce job après le job de build Docker
-
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
-
-      - name: Deploy to server
+          pip install black flake8 isort
+      - name: 🎨 Code formatting
         run: |
-          # Ajoutez ici les étapes de déploiement, par exemple via SSH
-          ssh user@your-server 'docker pull yourdockerhubusername/your-app-name:latest && docker-compose up -d'
+          black --check --diff . || echo "⚠️  Formatting issues found"
+    
+          
+    deploy-production:
+      name: 🚀 Déploiement Production
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/prod'  # ⭐ Déployer seulement sur prod
+      
+      steps:
+        - name: 📥 Checkout code
+          uses: actions/checkout@v4
+
+        - name: 🚀 Deploy with SSH Key
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.VPS_HOST }}
+            username: ${{ secrets.VPS_USERNAME }}
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            script: |
+              set -e
+              echo "🚀 Starting deployment..."
+              cd /var/www/wolof-sign
+              
+              echo "📥 Cleaning and fetching latest code..."
+              git fetch origin prod
+              git reset --hard origin/prod
+              git clean -fd
+              
+              echo "🐳 Rebuilding Docker images..."
+              docker-compose down
+              docker-compose build --no-cache web
+              
+              echo "🚀 Starting services..."
+              docker-compose up -d db redis web
+              sleep 15
+              
+              echo "🔍 Checking web status..."
+              docker-compose logs web --tail=10
+              
+              echo "🗃️ Running migrations..."
+              docker-compose exec web python manage.py migrate --noinput
+              
+              echo "📦 Collecting static files..."
+              docker-compose exec web python manage.py collectstatic --noinput
+              
+              echo "🔧 Starting nginx..."
+              docker-compose up -d nginx
+              
+              echo "🎉 Déploiement réussi!"
+              docker-compose ps
+              echo "✅ Health check..."
+              curl -f http://localhost:8000/health/ || echo "Health check endpoint not available"
