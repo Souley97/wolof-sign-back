@@ -82,51 +82,12 @@
     
           
     deploy-production:
-      name: 🚀 Déploiement Production
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/prod'  # ⭐ Déployer seulement sur prod
-      
-      steps:
-        - name: 📥 Checkout code
-          uses: actions/checkout@v4
-
-        - name: 🚀 Deploy with SSH Key
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              set -e
-              echo "🚀 Starting deployment..."
-              cd /var/www/wolof-sign
-              
-              echo "📥 Cleaning and fetching latest code..."
-              git fetch origin prod
-              git reset --hard origin/prod
-              git clean -fd
-              
-              echo "🐳 Rebuilding Docker images..."
-              docker-compose down
-              docker-compose build --no-cache web
-              
-              echo "🚀 Starting services..."
-              docker-compose up -d db redis web
-              sleep 15
-              
-              echo "🔍 Checking web status..."
-              docker-compose logs web --tail=10
-              
-              echo "🗃️ Running migrations..."
-              docker-compose exec web python manage.py migrate --noinput
-              
-              echo "📦 Collecting static files..."
-              docker-compose exec web python manage.py collectstatic --noinput
-              
-              echo "🔧 Starting nginx..."
-              docker-compose up -d nginx
-              
-              echo "🎉 Déploiement réussi!"
-              docker-compose ps
-              echo "✅ Health check..."
-              curl -f http://localhost:8000/health/ || echo "Health check endpoint not available"
+      name: 🧪 Debug Secrets
+      run: |
+        echo "HOST = '${{ secrets.VPS_HOST }}'"
+        echo "USERNAME = '${{ secrets.VPS_USERNAME }}'"
+        if [ -z "${{ secrets.VPS_HOST }}" ]; then
+          echo "❌ VPS_HOST is EMPTY"
+          exit 1
+        fi
+      shell: bash
