@@ -42,12 +42,13 @@ jobs:
     - name: 🏗️ Setup environment
       run: |
         echo "DEBUG=True" > .env
-        echo "SECRET_KEY=test-secret-key" >> .env
+        echo "DJANGO_SECRET_KEY=test-secret-key-for-ci-cd-12345" >> .env
         echo "DB_NAME=wolofsign" >> .env
         echo "DB_USER=wolofuser" >> .env
         echo "DB_PASSWORD=wolof@123" >> .env
         echo "DB_HOST=localhost" >> .env
         echo "DB_PORT=5432" >> .env
+        echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
 
     - name: 🗃️ Run migrations
       run: |
