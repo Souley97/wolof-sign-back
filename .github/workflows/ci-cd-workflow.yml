@@ -1,132 +1,108 @@
-  name: 🚀 WOLOF-SIGN CI/CD
+name: 🚀 WOLOF-SIGN CI/CD
 
-  on:
-    push:
-      branches: [main, prod]
-    pull_request:
-      branches: [main, prod]
+on:
+  push:
+    branches: [prod]
 
-  env:
-    PYTHON_VERSION: '3.11'
-    DJANGO_ENV: 'test'
-
-  jobs:
-    tests:
-      name: 🧪 Tests Django
-      runs-on: ubuntu-latest
-      timeout-minutes: 10
-      
-      services:
-        postgres:
-          image: postgres:15
-          env:
-            POSTGRES_USER: wolofuser
-            POSTGRES_PASSWORD: wolof@123
-            POSTGRES_DB: wolofsign
-          options: >-
-            --health-cmd pg_isready
-            --health-interval 10s
-            --health-timeout 5s
-            --health-retries 5
-          ports:
-            - 5432:5432
-
-      steps:
-      - name: 📥  Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-django coverage
-      - name: 🏗️ Create environment file
-        run: |
-          echo "DEBUG=False" >> .env.test
-          echo "SECRET_KEY=test-key-for-github-actions-only" >> .env.test
-          echo "DB_NAME=wolofsign" >> .env.test
-          echo "DB_USER=wolofuser" >> .env.test
-          echo "DB_PASSWORD=Bamsachine97@123" >> .env.test
-          echo "DB_HOST=localhost" >> .env.test
-          echo "DB_PORT=5432" >> .env.test
-      - name: 🗃️ Setup test database
-        run: |
-          python manage.py migrate
+jobs:
+  tests:
+    name: 🧪 Tests Django
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    services:
+      postgres:
+        image: postgres:15
         env:
-          DJANGO_SETTINGS_MODULE: core.settings
+          POSTGRES_USER: wolofuser
+          POSTGRES_PASSWORD: wolof@123
+          POSTGRES_DB: wolofsign
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
-    code-quality:
-      name: 🔍  Qualité de Code
-      runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 🏗️ Setup environment
+      run: |
+        echo "DEBUG=True" > .env
+        echo "SECRET_KEY=test-secret-key" >> .env
+        echo "DB_NAME=wolofsign" >> .env
+        echo "DB_USER=wolofuser" >> .env
+        echo "DB_PASSWORD=wolof@123" >> .env
+        echo "DB_HOST=localhost" >> .env
+        echo "DB_PORT=5432" >> .env
+
+    - name: 🗃️ Run migrations
+      run: |
+        python manage.py migrate
       
-      steps:
+    - name: 🧪 Run tests
+      run: |
+        python manage.py test
+
+  deploy-production:
+    name: 🚀 Déploiement Production
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.ref == 'refs/heads/prod'
+    
+    steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: 📦 Install quality tools
+        
+      - name: 🔐 Setup SSH
         run: |
-          pip install black flake8 isort
-      - name: 🎨 Code formatting
-        run: |
-          black --check --diff . || echo "⚠️  Formatting issues found"
-    
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           
-    deploy-production:
-      name: 🚀 Déploiement Production
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/prod'  # ⭐ Déployer seulement sur prod
-      
-      steps:
-        - name: 📥 Checkout code
-          uses: actions/checkout@v4
-
-        - name: 🚀 Deploy with SSH Key
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USERNAME }}
-            key: ${{ secrets.SSH_PRIVATE_KEY }}
-            script: |
-              set -e
-              echo "🚀 Starting deployment..."
-              cd /var/www/wolof-sign
-              
-              echo "📥 Cleaning and fetching latest code..."
-              git fetch origin prod
-              git reset --hard origin/prod
-              git clean -fd
-              
-              echo "🐳 Rebuilding Docker images..."
-              docker-compose down
-              docker-compose build --no-cache web
-              
-              echo "🚀 Starting services..."
-              docker-compose up -d db redis web
-              sleep 15
-              
-              echo "🔍 Checking web status..."
-              docker-compose logs web --tail=10
-              
-              echo "🗃️ Running migrations..."
-              docker-compose exec web python manage.py migrate --noinput
-              
-              echo "📦 Collecting static files..."
-              docker-compose exec web python manage.py collectstatic --noinput
-              
-              echo "🔧 Starting nginx..."
-              docker-compose up -d nginx
-              
-              echo "🎉 Déploiement réussi!"
-              docker-compose ps
-              echo "✅ Health check..."
-              curl -f http://localhost:8000/health/ || echo "Health check endpoint not available"
+      - name: 🚀 Deploy to VPS
+        run: |
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} '
+            set -e
+            echo "🚀 Déploiement Wolof-Sign en cours..."
+            
+            cd /var/www/wolof-sign
+            
+            echo "📥 Récupération du code..."
+            git fetch origin prod
+            git reset --hard origin/prod
+            git clean -fd
+            
+            echo "🐳 Reconstruction des services..."
+            docker-compose -f docker-compose.final.yml down
+            docker-compose -f docker-compose.final.yml build --no-cache
+            
+            echo "🚀 Démarrage des services..."
+            docker-compose -f docker-compose.final.yml up -d
+            sleep 30
+            
+            echo "🗃️ Exécution des migrations..."
+            docker-compose -f docker-compose.final.yml exec web python manage.py migrate --noinput
+            
+            echo "📦 Collection des fichiers statiques..."
+            docker-compose -f docker-compose.final.yml exec web python manage.py collectstatic --noinput --clear
+            
+            echo "🎉 DÉPLOIEMENT RÉUSSI!"
+            echo "🌐 Votre application est accessible sur:"
+            echo "   http://72.60.189.237:8080/"
+            echo "   http://72.60.189.237:8080/api/docs/"
+          '
