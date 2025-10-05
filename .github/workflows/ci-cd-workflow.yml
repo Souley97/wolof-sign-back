@@ -89,6 +89,17 @@
       steps:
         - name: 📥 Checkout code
           uses: actions/checkout@v4
+          
+        - name: 🧪 Debug Secrets
+          run: |
+            echo "HOST = '${{ secrets.VPS_HOST }}'"
+            echo "USERNAME = '${{ secrets.VPS_USERNAME }}'"
+            if [ -z "${{ secrets.VPS_HOST }}" ]; then
+              echo "❌ VPS_HOST is EMPTY"
+              exit 1
+            fi
+          shell: bash
+
 
         - name: 🚀 Deploy with SSH Key
           uses: appleboy/ssh-action@v1.0.3
