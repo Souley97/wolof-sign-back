@@ -16,9 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security Settings
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', False)
-# ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,sign.wolofdigital.com,apisign.wolofdigital.com').split(',')]
+# ALLOWED_HOSTS: utilise DJANGO_ALLOWED_HOSTS ou ALLOWED_HOSTS du .env
+_default_hosts = 'localhost,127.0.0.1,sign.wolofdigital.com,apisign.wolofdigital.com'
+_allowed = os.getenv('DJANGO_ALLOWED_HOSTS') or os.getenv('ALLOWED_HOSTS') or _default_hosts
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
 # Security Headers
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
