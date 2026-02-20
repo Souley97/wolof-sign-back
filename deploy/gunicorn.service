@@ -1,0 +1,30 @@
+# Service systemd pour Gunicorn – Wolof Sign API
+# Copier vers: sudo cp deploy/gunicorn.service /etc/systemd/system/wolofsign.service
+# Puis: sudo systemctl daemon-reload && sudo systemctl enable wolofsign && sudo systemctl start wolofsign
+#
+# Adapter WorkingDirectory et User si le projet est ailleurs ou sous un autre utilisateur.
+
+[Unit]
+Description=Gunicorn pour Wolof Sign API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=wolofsign
+Group=www-data
+WorkingDirectory=/var/www/wolof-sign-back
+# Django lit .env depuis WorkingDirectory, pas besoin de EnvironmentFile
+ExecStart=/var/www/wolof-sign-back/venv/bin/gunicorn core.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 3 \
+    --threads 2 \
+    --worker-class gthread \
+    --access-logfile - \
+    --error-logfile - \
+    --capture-output
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
