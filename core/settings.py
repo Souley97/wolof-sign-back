@@ -6,6 +6,8 @@ from cryptography.fernet import Fernet
 import logging
 import dj_database_url
 
+logger = logging.getLogger(__name__)
+
 # Configurer environ
 env = environ.Env()
 env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -17,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', False)
 # ALLOWED_HOSTS: utilise DJANGO_ALLOWED_HOSTS ou ALLOWED_HOSTS du .env
-_default_hosts = 'localhost,127.0.0.1,www.sign.wolofdigital.com,apisign.wolofdigital.com'
+_default_hosts = 'localhost,127.0.0.1,sign.wolofdigital.com,www.sign.wolofdigital.com,apisign.wolofdigital.com'
 _allowed = os.getenv('DJANGO_ALLOWED_HOSTS') or os.getenv('ALLOWED_HOSTS') or _default_hosts
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
@@ -95,9 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://sign.wolofdigital.com',
     'https://www.sign.wolofdigital.com',
-    'https://apisign.wolofdigital.com'
-
+    'https://apisign.wolofdigital.com',
 ])
 CORS_ALLOW_CREDENTIALS = True
 
@@ -275,7 +277,6 @@ try:
     else:
         raise ValueError("Clé non définie")
 except Exception as e:
-    logger = logging.getLogger(__name__)
     logger.warning(f"ATTENTION: La clé de chiffrement n'est pas valide ({str(e)}). Génération d'une nouvelle clé temporaire.")
     SIGNATURE_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
