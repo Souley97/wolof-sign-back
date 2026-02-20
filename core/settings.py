@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', False)
 # ALLOWED_HOSTS: utilise DJANGO_ALLOWED_HOSTS ou ALLOWED_HOSTS du .env
-_default_hosts = 'localhost,127.0.0.1,sign.wolofdigital.com,apisign.wolofdigital.com'
+_default_hosts = 'localhost,127.0.0.1,www.sign.wolofdigital.com,apisign.wolofdigital.com'
 _allowed = os.getenv('DJANGO_ALLOWED_HOSTS') or os.getenv('ALLOWED_HOSTS') or _default_hosts
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
@@ -95,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'https://sign.wolofdigital.com',
+    'https://www.sign.wolofdigital.com',
     'https://apisign.wolofdigital.com'
 
 ])
