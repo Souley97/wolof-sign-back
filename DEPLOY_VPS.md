@@ -16,8 +16,10 @@ Guide pour déployer l’API Django sur un VPS (ex. LWS) avec Nginx, Gunicorn et
 
 ```bash
 sudo apt update
-sudo apt install -y python3.13 python3.13-venv python3-pip build-essential libpq-dev postgresql-client git
+sudo apt install -y python3.13 python3.13-venv python3.13-dev python3-pip build-essential libpq-dev postgresql-client git
 ```
+
+`libpq-dev` et `python3.13-dev` sont nécessaires pour compiler **psycopg2-binary** si aucun wheel préconstruit n’est disponible pour ta plateforme.
 
 ---
 
@@ -220,6 +222,7 @@ sudo chmod -R 755 /var/www/wolof-sign-back/staticfiles
 
 ## Dépannage
 
+- **Erreur de build psycopg2-binary** : Installer les paquets de développement puis réessayer : `sudo apt install -y libpq-dev python3.13-dev`, puis `./venv/bin/pip install -r requirements.txt`.
 - **502 Bad Gateway** : Gunicorn ne tourne pas ou pas sur 127.0.0.1:8000 → `systemctl status wolofsign`, vérifier le `--bind` dans le service.
 - **403 / CORS** : Vérifier `CORS_ALLOWED_ORIGINS` et `ALLOWED_HOSTS` dans `.env`, et les en-têtes dans la config Nginx.
 - **Static/Media 404** : Vérifier les `alias` dans Nginx (chemins vers `staticfiles` et `media`).
