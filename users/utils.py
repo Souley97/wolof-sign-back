@@ -20,17 +20,15 @@ def send_verification_email(user):
         # Create a verification token
         token_obj = EmailVerificationToken.objects.create(user=user)
         
-        # Get site URL from environment variables
-        site_url = settings.SITE_URL
-        
-        # Create verification link
-        verification_link = f"{site_url}/api/user/verify-email/{token_obj.token}/"
+        # Lien vers la page frontend qui appellera l'API de vérification
+        frontend_url = getattr(settings, 'FRONTEND_URL', settings.SITE_URL)
+        verification_link = f"{frontend_url.rstrip('/')}/auth/verify-email/{token_obj.token}"
         
         # Prepare email content
         context = {
             'user': user,
             'verification_link': verification_link,
-            'site_url': site_url
+            'site_url': frontend_url
         }
         
         html_message = render_to_string('users/email_verification.html', context)

@@ -34,6 +34,7 @@ from django.utils.translation import gettext as _
 from .utils import *
 from rest_framework import generics, permissions, status
 from django.utils.encoding import force_str
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -160,9 +161,12 @@ def resend_verification_email(request):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error(f"Erreur d'envoi d'email: {str(e)}")
+            logger.error(f"Erreur d'envoi d'email: {str(e)}", exc_info=True)
+            err_msg = "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard."
+            if getattr(settings, 'DEBUG', False):
+                err_msg += f" (détail: {str(e)})"
             return Response(
-                {"error": "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard."},
+                {"error": err_msg},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
             

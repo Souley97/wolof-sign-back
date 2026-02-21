@@ -110,6 +110,7 @@ EMAIL_USE_TLS=True
 EMAIL_HOST_USER=votre-email@gmail.com
 EMAIL_HOST_PASSWORD=mot-de-passe-application
 DEFAULT_FROM_EMAIL=votre-email@gmail.com
+# Pour Gmail : créer un "mot de passe d'application" dans le compte Google (Sécurité > Mots de passe des applications).
 
 # Stripe / PayDunya (si utilisé)
 STRIPE_SECRET_KEY=sk_...

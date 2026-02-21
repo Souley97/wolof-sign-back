@@ -141,6 +141,7 @@ Lorsque vous déployez sur Railway ou tout autre service avec des conteneurs ép
 
 ### Configuration actuelle
 
+
 Le backend est configuré pour servir les fichiers média via l'URL `/media/` en environnement de développement et en production.
 
 Pour les fichiers PDF spécifiquement, un middleware personnalisé (`MediaFilesMiddleware`) a été ajouté pour configurer correctement les en-têtes CORS et le type de contenu.
