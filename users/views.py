@@ -24,7 +24,6 @@ from .models import EmailVerificationToken
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponsePermanentRedirect
-from django.shortcuts import redirect
 from .renderers import UserRenderer
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .serializers import *
@@ -90,22 +89,14 @@ def verify_email(request, token):
         if not user.is_verified:
             user.is_verified = True
             user.save()
-            
-            # Delete the token after use
             token_obj.delete()
-            site_url = settings.FRONTEND_URL
-    
-    
-    # Create reset link - this should point to your frontend
-    
-            redirection_url = f"{site_url}/auth/login"
-            return redirect(redirection_url)
-        
-        
+            # Réponse JSON (pas de redirect) pour éviter CORS quand le front appelle en XHR
             return Response(
-                {"message": "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter à votre compte."},
-                status=status.HTTP_200_OK
-                
+                {
+                    "message": "Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter à votre compte.",
+                    "redirect_url": f"{settings.FRONTEND_URL.rstrip('/')}/auth/login",
+                },
+                status=status.HTTP_200_OK,
             )
         else:
             return Response(
