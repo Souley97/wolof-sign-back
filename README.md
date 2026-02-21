@@ -4,6 +4,10 @@
 
 This guide will walk you through how to clone the project, set up the environment, install necessary dependencies, configure PostgreSQL, and run the server.
 
+cd /var/www/wolof-sign-back
+sudo -u wolofsign git pull
+sudo systemctl restart wolofsign
+
 ---
 
 ## 1. Clone the Project
